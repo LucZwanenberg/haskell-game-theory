@@ -1,23 +1,56 @@
 module Board where
 
-data Space = Empty | P1 | P2
-type Board =
-  (
-    (Space, Space, Space),
-    (Space, Space, Space),
-    (Space, Space, Space)
-  )
+import Game
 
-data Column = A | B | C
-data Row = One | Two | Three
+data Board = Board (Row, Row, Row)
+  deriving (Eq)
 
-data Move = Move Column Row
-type Game = [Move]
+data Row = Row (Square, Square, Square)
+  deriving (Eq)
 
-data MoveError = AlreadyOccupied | GameOver
+data Square = Empty | PlayerOneMark | PlayerTwoMark
+  deriving (Eq)
 
-makeMove :: Game -> Move -> Either Game MoveError
-makeMove game move = Right AlreadyOccupied -- TODO: check for duplicates
+type PlayerToMove = Player
 
-helloWorld :: Int -> String
-helloWorld x = "Hello World!"
+playerSquare :: Player -> Square
+playerSquare PlayerOne = PlayerOneMark
+playerSquare PlayerTwo = PlayerTwoMark
+
+applyMoveToRow :: Row -> Player -> ColumnID -> Row
+applyMoveToRow (Row (a, b, c)) player A = Row ((playerSquare player), b, c)
+applyMoveToRow (Row (a, b, c)) player B = Row (a, (playerSquare player), c)
+applyMoveToRow (Row (a, b, c)) player C = Row (a, b, (playerSquare player))
+
+applyMoveToBoard :: Board -> Player -> Move -> Board
+applyMoveToBoard (Board (a, b, c)) player (Move x One) = Board ((applyMoveToRow a player x), b, c)
+applyMoveToBoard (Board (a, b, c)) player (Move x Two) = Board (a, (applyMoveToRow b player x), c)
+applyMoveToBoard (Board (a, b, c)) player (Move x Three) = Board (a, b, (applyMoveToRow c player x))
+
+initialBoard :: Board
+initialBoard = Board
+  (Row (Empty, Empty, Empty),
+  Row (Empty, Empty, Empty),
+  Row (Empty, Empty, Empty))
+
+opponent :: Player -> Player
+opponent PlayerOne = PlayerTwo
+opponent PlayerTwo = PlayerOne
+
+applyMovesToBoard :: Board -> PlayerToMove -> Moves -> Board
+applyMovesToBoard board playerToMove (x:xs) = applyMovesToBoard (applyMoveToBoard board playerToMove x) (opponent playerToMove) xs
+applyMovesToBoard board _ _ = board
+
+deriveBoard :: Game -> Board
+deriveBoard game = applyMovesToBoard initialBoard PlayerOne game
+
+instance Show Square where
+  show Empty = " "
+  show PlayerOneMark = "X"
+  show PlayerTwoMark = "O"
+
+instance Show Row where
+  show (Row (a, b, c)) = "[" ++ (show a) ++ "] [" ++ (show b) ++ "] [" ++ (show c) ++ "]"
+
+instance Show Board where
+  show (Board (one, two, three)) = "\n\n------------\n" ++ (show one) ++ "\n" ++ (show two) ++ "\n" ++ (show three) ++ "\n------------\n\n"

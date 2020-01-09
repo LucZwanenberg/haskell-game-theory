@@ -18,25 +18,25 @@ inputToMove _ = Nothing
 
 requestMove :: Game -> IO ()
 requestMove game = do
-  putStrLn (show (deriveBoard game))
   putStrLn "Enter your move:"
   input <- getLine
   case inputToMove input of
     Nothing -> do
-      putStrLn "Unknown move."
+      putStrLn "Unknown move"
       Main.requestMove game
     Just move -> processMove game move
 
 processMove :: Game -> Move -> IO ()
 processMove game move = do
   case Game.makeMove game move of
-    Left game -> requestMove game
+    Left game -> processGame game
     Right error -> do
       putStrLn ( "Error: " ++ (show error) )
       requestMove game
 
 processGame :: Game -> IO ()
 processGame game = do
+  putStrLn (show (deriveBoard game))
   case gameState game of
     Active -> requestMove game
     a -> putStrLn (show a)

@@ -53,4 +53,4 @@ instance Show Row where
   show (Row (a, b, c)) = "[" ++ (show a) ++ "] [" ++ (show b) ++ "] [" ++ (show c) ++ "]"
 
 instance Show Board where
-  show (Board (one, two, three)) = "\n\n------------\n" ++ (show one) ++ "\n" ++ (show two) ++ "\n" ++ (show three) ++ "\n------------\n\n"
+  show (Board (one, two, three)) = "\n\n___________\n\n" ++ (show one) ++ "\n" ++ (show two) ++ "\n" ++ (show three) ++ "\n___________\n\n"

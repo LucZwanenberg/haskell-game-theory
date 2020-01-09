@@ -12,18 +12,32 @@ data Move = Move ColumnID RowID
 type Moves = [Move]
 
 data Player = PlayerOne | PlayerTwo
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show Player where
+  show PlayerOne = "Player 1"
+  show PlayerTwo = "Player 2"
 
 type Game = [Move]
 
 type PlayerMoves = [Move]
 
 data GameState = Active | PlayerOneWon | PlayerTwoWon | Draw
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show GameState where
+  show Active = "Active"
+  show PlayerOneWon = "Player 1 has won!"
+  show PlayerTwoWon = "Player 2 has won!"
+  show Draw = "It's a draw!"
 
 data MoveError = AlreadyOccupied | GameOver | InvalidGame
-  deriving (Eq, Show)
+  deriving (Eq)
 
+instance Show MoveError where
+  show AlreadyOccupied = "Square is already occupied"
+  show GameOver = "Game has finished"
+  show InvalidGame = "Invalid game state"
 
 winConditions =
   [ [ Move A One    , Move A Two    , Move A Three  ]

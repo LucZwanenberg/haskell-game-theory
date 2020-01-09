@@ -39,7 +39,17 @@ processGame game = do
   putStrLn (show (deriveBoard game))
   case gameState game of
     Active -> requestMove game
-    a -> putStrLn (show a)
+    a -> do
+      putStrLn (show a)
+      requestRematch ()
+
+requestRematch :: () -> IO ()
+requestRematch _ = do
+  putStrLn "Rematch? (y/n)"
+  input <- getLine
+  case input of
+    "y" -> Main.processGame []
+    _ -> return ()
 
 main :: IO ()
 main = processGame []

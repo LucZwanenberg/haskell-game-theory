@@ -39,7 +39,6 @@ makeAIMove :: Game -> IO ()
 makeAIMove game = do
   let move = AI.getMove game in do
     putStrLn ("Computer: " ++ show move)
-    putStrLn ( show ( AI.moveScores game ) )
     case Game.makeMove game move of
       Left game -> do
         processGame game

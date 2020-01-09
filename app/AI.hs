@@ -10,25 +10,31 @@ data MoveScore = MoveScore Move Score
 instance Ord MoveScore where
   compare (MoveScore m1 s1) (MoveScore m2 s2) = compare s1 s2
 
-moveScore :: Game -> Move -> MoveScore
-moveScore game move = do
-  let player = playerToMove game in do
-    case makeMove game move of
-      Left game -> MoveScore move (gameScore game player)
-      _ -> MoveScore move (-1000)
-
-gameScore :: Game -> Player -> Score
-gameScore game player | winner game == Just player = 2
-                      | winner game == Just (opponent player) = -1
-                      | isDraw game = 1
-                      | otherwise = 0
-
-moveScores :: Game -> [MoveScore]
-moveScores game = map (moveScore game) (validMoves game)
-
-maximumMoveScore :: Game -> MoveScore
-maximumMoveScore game = maximum (moveScores game)
+filterLeft :: [Either a b] -> [a]
+filterLeft ((Left x):xs) = [x] ++ (filterLeft xs)
+filterLeft (_:xs) = filterLeft xs
+filterLeft _ = []
 
 getMove :: Game -> Move
-getMove game = case (maximumMoveScore game) of
+getMove game = case perfectPlay game of
   MoveScore move score -> move
+
+perfectPlay :: Game -> MoveScore
+perfectPlay game = case playerToMove game of
+  PlayerOne -> maximum ( analyzeMoves game )
+  PlayerTwo -> minimum ( analyzeMoves game )
+
+analyzeMoves :: Game -> [MoveScore]
+analyzeMoves game = filterLeft ( map (analyzeMove game) (validMoves game) )
+
+analyzeMove :: Game -> Move -> Either MoveScore MoveError
+analyzeMove game move = case makeMove game move of
+  Left game -> Left (MoveScore move (score game))
+  Right moveError -> Right moveError
+
+score :: Game -> Score
+score game | winner game == Just PlayerOne = 1
+           | isDraw game = 0
+           | winner game == Just PlayerTwo = -1
+           | otherwise = case perfectPlay game of
+              MoveScore move score -> score

@@ -33,10 +33,6 @@ initialBoard = Board
   Row (Empty, Empty, Empty),
   Row (Empty, Empty, Empty))
 
-opponent :: Player -> Player
-opponent PlayerOne = PlayerTwo
-opponent PlayerTwo = PlayerOne
-
 applyMovesToBoard :: Board -> PlayerToMove -> Moves -> Board
 applyMovesToBoard board playerToMove (x:xs) = applyMovesToBoard (applyMoveToBoard board playerToMove x) (opponent playerToMove) xs
 applyMovesToBoard board _ _ = board

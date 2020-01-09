@@ -3,6 +3,7 @@ module Main where
 import Lib
 import Game
 import Board
+import AI
 
 inputToMove :: String -> Maybe Move
 inputToMove "A1" = Just ( Move A One )
@@ -16,29 +17,42 @@ inputToMove "C2" = Just ( Move C Two )
 inputToMove "C3" = Just ( Move C Three )
 inputToMove _ = Nothing
 
-requestMove :: Game -> IO ()
-requestMove game = do
+requestHumanMove :: Game -> IO ()
+requestHumanMove game = do
   putStrLn "Enter your move:"
   input <- getLine
   case inputToMove input of
     Nothing -> do
       putStrLn "Unknown move"
-      Main.requestMove game
-    Just move -> processMove game move
+      Main.requestHumanMove game
+    Just move -> processHumanMove game move
 
-processMove :: Game -> Move -> IO ()
-processMove game move = do
+processHumanMove :: Game -> Move -> IO ()
+processHumanMove game move = do
   case Game.makeMove game move of
     Left game -> processGame game
     Right error -> do
       putStrLn ( "Error: " ++ (show error) )
-      requestMove game
+      requestHumanMove game
+
+makeAIMove :: Game -> IO ()
+makeAIMove game = do
+  let move = AI.getMove game in do
+    putStrLn ("Computer: " ++ show move)
+    putStrLn ( show ( AI.moveScores game ) )
+    case Game.makeMove game move of
+      Left game -> do
+        processGame game
+      Right error -> putStrLn ("Error: " ++ (show error))
 
 processGame :: Game -> IO ()
 processGame game = do
   putStrLn (show (deriveBoard game))
   case gameState game of
-    Active -> requestMove game
+    Active -> do
+      case (length game) `mod` 2 of
+        0 -> requestHumanMove game
+        _ -> makeAIMove game
     a -> do
       putStrLn (show a)
       requestRematch ()

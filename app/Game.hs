@@ -1,13 +1,26 @@
 module Game where
 
 data ColumnID = A | B | C
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show ColumnID where
+  show A = "A"
+  show B = "B"
+  show C = "C"
 
 data RowID = One | Two | Three
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show RowID where
+  show One = "1"
+  show Two = "2"
+  show Three = "3"
 
 data Move = Move ColumnID RowID
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show Move where
+  show (Move column row) = (show column) ++ (show row)
 
 type Moves = [Move]
 
@@ -62,6 +75,10 @@ movesForPlayer _ _ = []
 
 xs `supersetOf` ys = null $ filter (not . (`elem` xs)) ys
 
+opponent :: Player -> Player
+opponent PlayerOne = PlayerTwo
+opponent PlayerTwo = PlayerOne
+
 threeInARow :: PlayerMoves -> Bool
 threeInARow moves = foldl (||) False (map (supersetOf moves) winConditions)
 
@@ -89,6 +106,23 @@ isValidMove :: Game -> Move -> Bool
 isValidMove game move | gameOver game = False
                       | gameContainsMove game move = False
                       | otherwise = True
+playerToMove :: Game -> Player
+playerToMove game | (length game) `mod` 2 == 0 = PlayerOne
+                  | otherwise = PlayerTwo
+
+allMoves :: [Move]
+allMoves = [ Move A One
+  , Move A Two
+  , Move A Three
+  , Move B One
+  , Move B Two
+  , Move B Three
+  , Move C One
+  , Move C Two
+  , Move C Three ]
+
+validMoves :: Game -> [Move]
+validMoves game = filter (isValidMove game) allMoves
 
 isValidGame :: Game -> Bool
 isValidGame (x:xs) | isValidGame (init (x:xs)) == False = False

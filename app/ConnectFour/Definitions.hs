@@ -18,10 +18,18 @@ type Board = (Row, Row, Row, Row, Row, Row)
 
 type Row = (Slot, Slot, Slot, Slot, Slot, Slot, Slot)
 
-data MoveError = ColumnIsFull | GameOver | InvalidGame
+data MoveError = ColumnIsFull | GameOver
   deriving (Eq)
 
 instance Show MoveError where
   show ColumnIsFull = "Column is full"
   show GameOver = "Game has finished"
-  show InvalidGame = "Invalid game state"
+
+data GameState = Active | PlayerOneWon | PlayerTwoWon | Draw
+  deriving (Eq)
+
+instance Show GameState where
+  show Active = "Active"
+  show PlayerOneWon = "Player 1 has won!"
+  show PlayerTwoWon = "Player 2 has won!"
+  show Draw = "It's a draw!"

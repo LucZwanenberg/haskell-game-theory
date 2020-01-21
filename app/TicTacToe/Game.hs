@@ -44,13 +44,12 @@ instance Show GameState where
   show PlayerTwoWon = "Player 2 has won!"
   show Draw = "It's a draw!"
 
-data MoveError = AlreadyOccupied | GameOver | InvalidGame
+data MoveError = AlreadyOccupied | GameOver
   deriving (Eq)
 
 instance Show MoveError where
   show AlreadyOccupied = "Square is already occupied"
   show GameOver = "Game has finished"
-  show InvalidGame = "Invalid game state"
 
 winConditions =
   [ [ Move A One    , Move A Two    , Move A Three  ]

@@ -9,12 +9,15 @@ winner game | arrayContains sumValues 4 = Just PlayerOne
             | arrayContains sumValues (-4) = Just PlayerTwo
             | otherwise = Nothing
           where
-            sumValues = map sum (subarraysLength4 ( subarraysAllDirections (analysisMatrix game )))
+            sumValues = map sum (subarraysLength4 (analysisMatrix game ))
 
 arrayContains :: Eq a => [a] -> a -> Bool
 arrayContains (x:xs) item | x == item = True
                           | otherwise = arrayContains xs item
 arrayContains _ item = False
+
+showGame :: Game -> [Char]
+showGame game = showBoard (gameToBoard game)
 
 hasWinner :: Game -> Bool
 hasWinner game = case winner game of
@@ -30,6 +33,12 @@ gameOver :: Game -> Bool
 gameOver game | hasWinner game = True
               | isDraw game = True
               | otherwise = False
+
+gameState :: Game -> GameState
+gameState game | winner game == Just PlayerOne = PlayerOneWon
+               | winner game == Just PlayerTwo = PlayerTwoWon
+               | isDraw game = Draw
+               | otherwise = Active
 
 isValidGame :: Game -> Bool
 isValidGame (x:xs) | isValidGame (init (x:xs)) == False = False

@@ -2,6 +2,7 @@ module Main where
 
 import Lib
 import TicTacToe.IO
+import ConnectFour.IO
 
 main :: IO ()
-main = TicTacToe.IO.init
+main = ConnectFour.IO.init

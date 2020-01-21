@@ -1,9 +1,9 @@
-module BoardSpec where
+module TicTacToe.BoardSpec where
 
 import Test.Hspec
 import Prelude
-import Game
-import Board
+import TicTacToe.Game
+import TicTacToe.Board
 
 spec :: Spec
 spec = do

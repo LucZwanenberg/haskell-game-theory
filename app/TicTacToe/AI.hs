@@ -1,6 +1,6 @@
-module AI where
+module TicTacToe.AI where
 
-import Game
+import TicTacToe.Game
 
 type Score = Integer
 

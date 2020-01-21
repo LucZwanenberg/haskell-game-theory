@@ -1,6 +1,6 @@
-module Board where
+module TicTacToe.Board where
 
-import Game
+import TicTacToe.Game
 
 data Board = Board (Row, Row, Row)
   deriving (Eq)

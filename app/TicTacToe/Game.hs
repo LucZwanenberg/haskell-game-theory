@@ -1,4 +1,4 @@
-module Game where
+module TicTacToe.Game where
 
 data ColumnID = A | B | C
   deriving (Eq)

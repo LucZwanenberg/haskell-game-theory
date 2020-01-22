@@ -4,6 +4,7 @@ import Lib
 import ConnectFour.Definitions
 import ConnectFour.Game
 import ConnectFour.Board
+import ConnectFour.AI
 
 inputToMove :: String -> Maybe Move
 inputToMove "A" = Just A

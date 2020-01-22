@@ -1,7 +1,25 @@
 module ConnectFour.AISpec where
 
 import Test.Hspec
+import Test.QuickCheck
+import Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
 import ConnectFour.AI as AI
+
+instance (Arbitrary Analysis) where
+  arbitrary = do
+    type' <- choose (0 :: Int, 2 :: Int)
+    case type' of
+      0 -> do
+        result <- elements [AI.P1Win, AI.Draw, AI.P2Win]
+        moves <- choose (1, 3)
+        return $ (Analysis (Left (result, moves)))
+      1 -> do
+        depth <- choose (1, 3)
+        return $ (Analysis (Right (0, depth)))
+      _ -> do
+        score <- choose (-3, 3)
+        depth <- choose (1, 3)
+        return $ (Analysis (Right (score, depth)))
 
 spec :: Spec
 spec = do
@@ -23,6 +41,24 @@ spec = do
       context "heuristic evaluation" $ do
         it "shows score" $ do
           show ( Analysis (Right (123, 10))) `shouldBe` "Score: 123, Depth: 10"
+
+    describe "totally ordered set" $ do
+      modifyMaxSuccess (const 1000) $ do
+        it "is transitive" $
+          property $
+            \x y z -> (x :: Analysis) <= (y :: Analysis) && y <= (z :: Analysis) ==> x <= z
+
+        it "is reflexive" $
+          property $
+            \x -> (x :: Analysis) <= x
+
+        it "is anti-symmetric" $
+          property $
+            \x y -> not((x :: Analysis) <= (y :: Analysis) && y <= x) || x == y
+
+        it "is comparable" $
+          property $
+            \x  y -> (x :: Analysis) <= (y :: Analysis) || y <= x
 
     describe "ordering" $ do
       it "fast guaranteed P1 win > slow guaranteed P1 win" $ do

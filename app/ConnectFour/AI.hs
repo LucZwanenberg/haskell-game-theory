@@ -25,11 +25,11 @@ instance Show Analysis where
 
   show (Analysis (Right (score, depth))) = "Score: " ++ (show score) ++ ", Depth: " ++ (show depth)
 
-quantifyAnalysis :: Analysis -> Int
-quantifyAnalysis (Analysis (Left (P1Win, moves))) = maxBound
-quantifyAnalysis (Analysis (Left (ConnectFour.AI.Draw, moves))) = 0
-quantifyAnalysis (Analysis (Left (P2Win, moves))) = minBound
-quantifyAnalysis (Analysis (Right (score, depth))) = score
+getScore :: Analysis -> Int
+getScore (Analysis (Left (P1Win, moves))) = maxBound
+getScore (Analysis (Left (ConnectFour.AI.Draw, moves))) = 0
+getScore (Analysis (Left (P2Win, moves))) = minBound
+getScore (Analysis (Right (score, depth))) = score
 
 instance Ord Analysis where
   compare a b
@@ -40,9 +40,10 @@ instance Ord Analysis where
           (Analysis (Left (ConnectFour.AI.Draw, aMoves)), Analysis (Left (ConnectFour.AI.Draw, bMoves))) -> compare aMoves bMoves
           (Analysis (Left (ConnectFour.AI.Draw, aMoves)), Analysis (Right (0, bMoves))) -> compare 0 1
           (Analysis (Right (0, aMoves)), Analysis (Left (ConnectFour.AI.Draw, bMoves))) -> compare 1 0
-          (Analysis (Right (0, aMoves)), Analysis (Right (0, bMoves))) -> compare bMoves aMoves
           (Analysis (Left (ConnectFour.AI.P2Win, aMoves)), Analysis (Left (ConnectFour.AI.P2Win, bMoves))) -> compare aMoves bMoves
+          (Analysis (Right (aScore, aMoves)), Analysis (Right (bScore, bMoves))) -> compare bMoves aMoves
+
           _ -> compare 0 1
     where
-      aScore = quantifyAnalysis a
-      bScore = quantifyAnalysis b
+      aScore = getScore a
+      bScore = getScore b

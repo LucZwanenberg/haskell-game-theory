@@ -4,6 +4,7 @@ data ColumnID = A | B | C | D | E | F | G
   deriving (Eq, Show)
 
 type Move = ColumnID
+
 type Game = [Move]
 
 data Player = PlayerOne | PlayerTwo

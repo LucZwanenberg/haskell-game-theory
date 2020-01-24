@@ -56,6 +56,9 @@ makeMove game move | gameOver game = Right GameOver
                    | columnIsFull game move = Right ColumnIsFull
                    | otherwise = Left (game ++ [move])
 
+validMoves :: Game -> [Move]
+validMoves game = (isValidMove game) `filter` ([A, B, C, D, E, F, G])
+
 isValidMove :: Game -> Move -> Bool
 isValidMove game move | gameOver game = False
                       | columnIsFull game move = False

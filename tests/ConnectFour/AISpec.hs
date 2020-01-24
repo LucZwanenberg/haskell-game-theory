@@ -3,6 +3,7 @@ module ConnectFour.AISpec where
 import Test.Hspec
 import Test.QuickCheck
 import Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
+import ConnectFour.Definitions as Definitions
 import ConnectFour.AI as AI
 
 genResult = do
@@ -175,3 +176,18 @@ spec = do
           it "is comparable" $
             property $
               \x  y -> (x :: MixedAnalysis) <= (y :: MixedAnalysis) || y <= x
+
+    describe "#bestMove" $ do
+      context "can win this move" $ do
+        it "will connect four" $ do
+          bestMove [B, C, B, C, B, C] `shouldBe` B
+      context "cannot win this move" $ do
+        context "opponent could connect four next four if not blocked" $ do
+          it "will block" $ do
+            bestMove [B, C, B, C, B] `shouldBe` B
+      it "will setup a multi-directional attack" $ do
+        bestMove [B, B, D, D] `shouldBe` C
+      it "will prevent a multi-directional attack" $ do
+        bestMove [B, B, D] `shouldBe` C
+
+

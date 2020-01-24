@@ -3,6 +3,11 @@ module ConnectFour.AI where
 import ConnectFour.Definitions
 import ConnectFour.Game
 
+filterLeft :: [Either a b] -> [a]
+filterLeft ((Left x):xs) = [x] ++ (filterLeft xs)
+filterLeft (_:xs) = filterLeft xs
+filterLeft _ = []
+
 class Analysis a where
   score :: a -> Int
   mixedAnalysis :: a -> MixedAnalysis
@@ -82,21 +87,57 @@ instance Ord MixedAnalysis where
   compare a b = compareMixedAnalysis a b
 
 -- Analyze moves
-data MoveScore = MoveScore Move MixedAnalysis
+data MoveAnalysis = MoveAnalysis Move MixedAnalysis
   deriving (Eq, Show)
 
-instance Ord MoveScore where
-  compare (MoveScore _ a1) (MoveScore _ a2) = compare a1 a2
+instance Ord MoveAnalysis where
+  compare (MoveAnalysis _ a1) (MoveAnalysis _ a2) = compare a1 a2
 
 getMove :: Game -> Move
-getMove game = case bestMove game of
-  MoveScore move score -> move
+getMove game = bestMove game
 
-bestMove :: Game -> MoveScore
-bestMove game = case playerToMove game of
-  PlayerOne -> maximum ( analyzeMoves game )
-  PlayerTwo -> minimum ( analyzeMoves game )
+bestMove :: Game -> Move
+bestMove game = case (bestMoveAnalysis game 4) of
+  MoveAnalysis move score -> move
 
-analyzeMoves :: Game -> [MoveScore]
--- TODO: implement analyzeMoves
-analyzeMoves game= [MoveScore A (mixedAnalysis (HeuristicAnalysis(12, 2)))]
+bestMoveAnalysis :: Game -> Depth -> MoveAnalysis
+bestMoveAnalysis game depth = case playerToMove game of
+  PlayerOne -> maximum ( analyzeMoves game depth )
+  PlayerTwo -> minimum ( analyzeMoves game depth )
+
+analyzeMoves :: Game -> Depth -> [MoveAnalysis]
+analyzeMoves game depth = filterLeft ((analyzeMove game depth) `map` (validMoves game))
+
+analyzeMove :: Game -> Depth -> Move -> (Either MoveAnalysis MoveError)
+analyzeMove game depth move = do
+  case (makeMove game move) of
+    Left game -> do
+      case (deductiveAnalysisDepth0 game) of
+        Just a -> Left ( MoveAnalysis move (mixedAnalysis (increaseMoves a)))
+        -- TODO: if depth <= 1, then apply heuristic move analysis
+        -- otherwise, recursion on bestMove + increase depth/moves
+        Nothing -> Left (MoveAnalysis move (mixedAnalysis (HeuristicAnalysis (0, 0))))
+    Right moveError -> Right moveError
+
+deductiveAnalysisDepth0 :: Game -> (Maybe DeductiveAnalysis)
+deductiveAnalysisDepth0 game = do
+  case (gameState game) of
+    PlayerOneWon -> Just (DeductiveAnalysis (P1Win, 0))
+    Draw -> Just (DeductiveAnalysis (NoWin, 0))
+    PlayerTwoWon -> Just (DeductiveAnalysis (P2Win, 0))
+    Active -> Nothing
+
+increaseDepthMove :: MixedAnalysis -> MixedAnalysis
+increaseDepthMove mixedAnalysis = do
+  case mixedAnalysis of
+    (MixedAnalysis (Left a)) -> (MixedAnalysis (Left (increaseMoves a)))
+    (MixedAnalysis (Right a)) -> (MixedAnalysis (Right (increaseDepth a)))
+
+increaseMoves :: DeductiveAnalysis -> DeductiveAnalysis
+increaseMoves (DeductiveAnalysis (result, moves)) = DeductiveAnalysis (result, moves + 1)
+
+increaseDepth :: HeuristicAnalysis -> HeuristicAnalysis
+increaseDepth (HeuristicAnalysis (score, depth)) = HeuristicAnalysis (score, depth + 1)
+
+heuristicAnalysisDepth0 :: Game -> HeuristicAnalysis
+heuristicAnalysisDepth0 game = HeuristicAnalysis (1, 0)

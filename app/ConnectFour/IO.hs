@@ -8,12 +8,19 @@ import ConnectFour.AI as AI
 
 inputToMove :: String -> Maybe Move
 inputToMove "A" = Just A
+inputToMove "a" = Just A
 inputToMove "B" = Just B
+inputToMove "b" = Just B
 inputToMove "C" = Just C
+inputToMove "c" = Just C
 inputToMove "D" = Just D
+inputToMove "d" = Just D
 inputToMove "E" = Just E
+inputToMove "e" = Just E
 inputToMove "F" = Just F
+inputToMove "f" = Just F
 inputToMove "G" = Just G
+inputToMove "g" = Just G
 inputToMove _ = Nothing
 
 requestHumanMove :: Game -> IO ()
@@ -51,8 +58,8 @@ processGame game = do
   case gameState game of
     Active -> do
       case (length game) `mod` 2 of
-        0 -> requestHumanMove game
-        _ -> makeAIMove game
+        0 -> makeAIMove game
+        _ -> requestHumanMove game
     a -> do
       putStrLn (show a)
       requestRematch ()

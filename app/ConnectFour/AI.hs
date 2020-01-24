@@ -146,4 +146,28 @@ increaseDepth :: HeuristicAnalysis -> HeuristicAnalysis
 increaseDepth (HeuristicAnalysis (score, depth)) = HeuristicAnalysis (score, depth + 1)
 
 heuristicAnalysisDepth0 :: Game -> HeuristicAnalysis
-heuristicAnalysisDepth0 game = HeuristicAnalysis (1, 0)
+heuristicAnalysisDepth0 game = HeuristicAnalysis ((analysisSubarrays game), 0)
+
+analysisSubarrays :: Game -> Score
+analysisSubarrays game = sum (map scoreSubarray (subarraysLength4 (analysisMatrix game)))
+
+scoreSubarray :: [Int] -> Score
+scoreSubarray array = do
+  case (analyzeSubarray array) of
+    (3, 0) -> 10
+    (0, 3) -> -10
+    (2, 0) -> 5
+    (0, 2) -> -5
+    (1, 0) -> 1
+    (0, 1) -> -1
+    _ -> 0
+
+analyzeSubarray :: [Int] -> (Int, Int)
+analyzeSubarray (x:xs) = do
+  case (analyzeSubarray xs) of
+    (p1, p2) -> do
+      case x of
+        1 -> (p1 + 1, p2)
+        -1 -> (p1, p2 + 1)
+        _ -> (p1, p2)
+analyzeSubarray _ = (0, 0)

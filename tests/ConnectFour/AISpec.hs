@@ -5,95 +5,173 @@ import Test.QuickCheck
 import Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
 import ConnectFour.AI as AI
 
-instance (Arbitrary Analysis) where
+genResult = do
+  result <- elements [P1Win, NoWin, P2Win]
+  return $ result
+
+genMoves = do
+  moves <- choose (1, 3)
+  return $ moves
+
+genDeductiveAnalysis = do
+  result <- genResult
+  moves <- genMoves
+  return $ DeductiveAnalysis (result, moves)
+
+instance (Arbitrary DeductiveAnalysis) where
   arbitrary = do
-    type' <- choose (0 :: Int, 2 :: Int)
-    case type' of
-      0 -> do
-        result <- elements [AI.P1Win, AI.Draw, AI.P2Win]
-        moves <- choose (1, 3)
-        return $ (Analysis (Left (result, moves)))
-      1 -> do
-        depth <- choose (1, 3)
-        return $ (Analysis (Right (0, depth)))
-      _ -> do
-        score <- choose (-3, 3)
-        depth <- choose (1, 3)
-        return $ (Analysis (Right (score, depth)))
+    deductiveAnalysis <- genDeductiveAnalysis
+    return $ deductiveAnalysis
+
+genScore = do
+  score <- choose (-2, 2)
+  return $ score
+
+genDepth = do
+  depth <- choose (1, 3)
+  return $ depth
+
+genHeuristicAnalysis = do
+  score <- genScore
+  depth <- genDepth
+  return $ HeuristicAnalysis (score, depth)
+
+instance (Arbitrary HeuristicAnalysis) where
+  arbitrary = do
+    heuristicAnalysis <- genHeuristicAnalysis
+    return $ heuristicAnalysis
+
+genMixedAnalysis = do
+  type' <- elements ["deductive", "heuristic"]
+  case type' of
+    "deductive" -> do
+      deductiveAnalysis <- genDeductiveAnalysis
+      (return $ MixedAnalysis (Left deductiveAnalysis))
+    "heuristic" -> do
+      heuristicAnalysis <- genHeuristicAnalysis
+      (return $ MixedAnalysis (Right heuristicAnalysis))
+
+instance (Arbitrary MixedAnalysis) where
+  arbitrary = do
+    mixedAnalysis <- genMixedAnalysis
+    return $ mixedAnalysis
 
 spec :: Spec
 spec = do
-  describe "Analysis" $ do
+  describe "DeductiveAnalysis" $ do
     describe "#show" $ do
-
-      context "win" $ do
+      context "P1 win" $ do
         it "shows correct string" $ do
-          show ( Analysis (Left (AI.P1Win, 3))) `shouldBe` "P1 win in 3"
+          show (DeductiveAnalysis (P1Win, 3)) `shouldBe` "P1 win in 3"
 
       context "draw" $ do
         it "shows correct string" $ do
-          show ( Analysis (Left (AI.Draw, 3))) `shouldBe` "Draw in 3"
+          show (DeductiveAnalysis (NoWin, 3)) `shouldBe` "Draw in 3"
 
-      context "loss" $ do
-        it "shows correct string" $ do
-          show ( Analysis (Left (AI.P2Win, 3))) `shouldBe` "P2 win in 3"
+      context "P2 win" $ do
+        it "shows correct sting" $ do
+          show (DeductiveAnalysis (P2Win, 3)) `shouldBe` "P2 win in 3"
 
-      context "heuristic evaluation" $ do
-        it "shows score" $ do
-          show ( Analysis (Right (123, 10))) `shouldBe` "Score: 123, Depth: 10"
+    describe "#score" $ do
+      context "P1 win" $ do
+        it "returns max bound" $ do
+          score (DeductiveAnalysis (P1Win, 3)) `shouldBe` maxBound
 
-    describe "totally ordered set" $ do
+      context "Draw" $ do
+        it "returns 0" $ do
+          score (DeductiveAnalysis (NoWin, 3)) `shouldBe` 0
+
+      context "P2 win" $ do
+        it "returns min bound" $ do
+          score (DeductiveAnalysis (P2Win, 3)) `shouldBe` minBound
+
+    describe "ordering" $ do
+      it "quick deductive P1 win is greater than slow deductive P1 win" $ do
+        (DeductiveAnalysis (P1Win, 2)) > (DeductiveAnalysis (P1Win, 6)) `shouldBe` True
+
+      it "slow deductive P1 win is greater than slow deductive no win" $ do
+        (DeductiveAnalysis (P1Win, 6)) > (DeductiveAnalysis (NoWin, 6)) `shouldBe` True
+
+      it "slow deductive no win is greater than fast deductive no win" $ do
+        (DeductiveAnalysis (NoWin, 6)) > (DeductiveAnalysis (NoWin, 2)) `shouldBe` True
+
+      it "fast deductive  no win is greater than slow deductive P2 win" $ do
+        (DeductiveAnalysis (NoWin, 2)) > (DeductiveAnalysis (P2Win, 2)) `shouldBe` True
+
+      it "slow deductive P2 win is greater than fast deductive P2 win" $ do
+        (DeductiveAnalysis (P2Win, 6)) > (DeductiveAnalysis (P2Win, 2)) `shouldBe` True
+
       modifyMaxSuccess (const 1000) $ do
         it "is transitive" $
           property $
-            \x y z -> (x :: Analysis) <= (y :: Analysis) && y <= (z :: Analysis) ==> x <= z
+            \x y z -> (x :: DeductiveAnalysis) <= (y :: DeductiveAnalysis) && y <= (z :: DeductiveAnalysis) ==> x <= z
 
         it "is reflexive" $
           property $
-            \x -> (x :: Analysis) <= x
+            \x -> (x :: DeductiveAnalysis) <= x
 
         it "is anti-symmetric" $
           property $
-            \x y -> not((x :: Analysis) <= (y :: Analysis) && y <= x) || x == y
+            \x y -> not((x :: DeductiveAnalysis) <= (y :: DeductiveAnalysis) && y <= x) || x == y
 
         it "is comparable" $
           property $
-            \x  y -> (x :: Analysis) <= (y :: Analysis) || y <= x
+            \x  y -> (x :: DeductiveAnalysis) <= (y :: DeductiveAnalysis) || y <= x
+
+  describe "HeuristicAnalysis" $ do
+    describe "#show" $ do
+      it "shows correct string" $ do
+        show (HeuristicAnalysis (3, 12)) `shouldBe` "Score: 3, Depth: 12"
+
+    describe "#score" $ do
+      it "returns score" $ do
+        score (HeuristicAnalysis (3, 12)) `shouldBe` 3
 
     describe "ordering" $ do
-      it "fast guaranteed P1 win > slow guaranteed P1 win" $ do
-        (Analysis (Left (AI.P1Win, 1))) > (Analysis (Left (AI.P1Win, 10))) `shouldBe` True
+      it "high heuristic score is greater than low heuristic score" $ do
+        (HeuristicAnalysis (10, 6)) > (HeuristicAnalysis (3, 2)) `shouldBe` True
 
-      it "slow guaranteed P1 win > positive high heuristic score" $ do
-        (Analysis (Left (AI.P1Win, 10)) > (Analysis (Right (1000, 1)))) `shouldBe` True
+      modifyMaxSuccess (const 1000) $ do
+        it "is transitive" $
+          property $
+            \x y z -> (x :: HeuristicAnalysis) <= (y :: HeuristicAnalysis) && y <= (z :: HeuristicAnalysis) ==> x <= z
 
-      it "positive high heuristic score > positive low heuristic score" $ do
-        (Analysis (Right (1000, 1))) > (Analysis (Right (1, 1))) `shouldBe` True
+        it "is reflexive" $
+          property $
+            \x -> (x :: HeuristicAnalysis) <= x
 
-      it "positive low heuristic score > neutral fast heuristic score" $ do
-        (Analysis (Right (1, 1))) > (Analysis (Right (0, 1))) `shouldBe` True
+        it "is anti-symmetric" $
+          property $
+            \x y -> not((x :: HeuristicAnalysis) <= (y :: HeuristicAnalysis) && y <= x) || x == y
 
-      it "neutral fast heuristic score > neutral slow heuristic score" $ do
-        (Analysis (Right (0, 1))) > (Analysis (Right (0, 10))) `shouldBe` True
+        it "is comparable" $
+          property $
+            \x  y -> (x :: HeuristicAnalysis) <= (y :: HeuristicAnalysis) || y <= x
 
-      it "neutral slow heuristic score > guaranteed slow draw" $ do
-        (Analysis (Right (0, 10))) > (Analysis (Left (AI.Draw, 10))) `shouldBe` True
+    describe "MixedAnalysis" $ do
+      describe "ordering" $ do
+        it "slow deductive p1 win is greater than high heuristic score" $ do
+          mixedAnalysis (DeductiveAnalysis (P1Win, 6)) > mixedAnalysis (HeuristicAnalysis (10, 3)) `shouldBe` True
 
-      it "guaranteed slow draw > guaranteed fast draw" $ do
-        (Analysis (Left (AI.Draw, 10))) > (Analysis (Left (AI.Draw, 1))) `shouldBe` True
+        it "neutral heuristic score is greater than deductive no win" $ do
+          mixedAnalysis (HeuristicAnalysis (0, 3)) > mixedAnalysis (DeductiveAnalysis (NoWin, 6)) `shouldBe` True
 
-      it "guaranteed fast draw > negative higher score" $ do
-        (Analysis (Left (AI.Draw, 1))) > (Analysis (Right (-1, 1))) `shouldBe` True
+        it "deductive no win is greater than heuristic negative score" $ do
+          mixedAnalysis (DeductiveAnalysis (NoWin, 6)) > mixedAnalysis(HeuristicAnalysis(-5, 2)) `shouldBe` True
 
-      it "negative higher score > negative lower score" $ do
-        (Analysis (Right (-1, 1))) > (Analysis (Right (-1000, 1))) `shouldBe` True
+        modifyMaxSuccess (const 1000) $ do
+          it "is transitive" $
+            property $
+              \x y z -> (x :: MixedAnalysis) <= (y :: MixedAnalysis) && y <= (z :: MixedAnalysis) ==> x <= z
 
-      it "negative lower score > slow guaranteed P2 win" $ do
-        (Analysis (Right (-1000, 1))) > (Analysis (Left (AI.P2Win, 1000))) `shouldBe` True
+          it "is reflexive" $
+            property $
+              \x -> (x :: MixedAnalysis) <= x
 
-      it "slow guaranteed P2 win > fast guaranteed P2 win" $ do
-        (Analysis (Left (AI.P2Win, 10))) > (Analysis (Left (AI.P2Win, 1))) `shouldBe` True
+          it "is anti-symmetric" $
+            property $
+              \x y -> not((x :: MixedAnalysis) <= (y :: MixedAnalysis) && y <= x) || x == y
 
-
-
-
+          it "is comparable" $
+            property $
+              \x  y -> (x :: MixedAnalysis) <= (y :: MixedAnalysis) || y <= x

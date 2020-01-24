@@ -2,48 +2,80 @@ module ConnectFour.AI where
 
 import ConnectFour.Definitions
 
-data GameResult = P1Win | Draw | P2Win
+class Analysis a where
+  score :: a -> Int
+  mixedAnalysis :: a -> MixedAnalysis
+
+-- Deductive analysis
+data GameResult = P1Win | NoWin | P2Win
   deriving (Eq)
-
-type HeuristicAnalysisScore = Int
-
 type NumberOfMoves = Int
-type Depth = Int
 
-data Analysis = Analysis (Either (GameResult, NumberOfMoves) (HeuristicAnalysisScore, Depth))
+data DeductiveAnalysis = DeductiveAnalysis (GameResult, NumberOfMoves)
   deriving (Eq)
 
-instance Show Analysis where
-  show (Analysis (Left (P1Win, nrOfMoves))) =
-    "P1 win in " ++ (show nrOfMoves)
+instance Show DeductiveAnalysis where
+  show (DeductiveAnalysis (P1Win, moves)) = "P1 win in " ++ (show moves)
+  show (DeductiveAnalysis (NoWin, moves)) = "Draw in " ++ (show moves)
+  show (DeductiveAnalysis (P2Win, moves)) = "P2 win in " ++ (show moves)
 
-  show (Analysis (Left (ConnectFour.AI.Draw, nrOfMoves))) =
-    "Draw in " ++ (show nrOfMoves)
+instance Analysis DeductiveAnalysis where
+  score (DeductiveAnalysis (P1Win, _)) = maxBound
+  score (DeductiveAnalysis (NoWin, _)) = 0
+  score (DeductiveAnalysis (P2Win, _)) = minBound
+  mixedAnalysis a = MixedAnalysis (Left a)
 
-  show (Analysis (Left (P2Win, nrOfMoves))) =
-    "P2 win in " ++ (show nrOfMoves)
+moves :: DeductiveAnalysis -> Int
+moves (DeductiveAnalysis (_, x)) = x
 
-  show (Analysis (Right (score, depth))) = "Score: " ++ (show score) ++ ", Depth: " ++ (show depth)
+instance Ord DeductiveAnalysis where
+  compare a b | scoreA /= scoreB = compare scoreA scoreB
+              | scoreA > 0 = compare movesB movesA
+              | otherwise = compare movesA movesB
+            where
+                scoreA = score a
+                movesA = moves a
+                scoreB = score b
+                movesB = moves b
 
-getScore :: Analysis -> Int
-getScore (Analysis (Left (P1Win, moves))) = maxBound
-getScore (Analysis (Left (ConnectFour.AI.Draw, moves))) = 0
-getScore (Analysis (Left (P2Win, moves))) = minBound
-getScore (Analysis (Right (score, depth))) = score
+-- Heuristic analysis
+type Depth = Int
+type Score = Int
 
-instance Ord Analysis where
-  compare a b
-      | aScore /= bScore = compare aScore bScore
-      | otherwise = do
-        case (a, b) of
-          (Analysis (Left (ConnectFour.AI.P1Win, aMoves)), Analysis (Left (ConnectFour.AI.P1Win, bMoves))) -> compare bMoves aMoves
-          (Analysis (Left (ConnectFour.AI.Draw, aMoves)), Analysis (Left (ConnectFour.AI.Draw, bMoves))) -> compare aMoves bMoves
-          (Analysis (Left (ConnectFour.AI.Draw, aMoves)), Analysis (Right (0, bMoves))) -> compare 0 1
-          (Analysis (Right (0, aMoves)), Analysis (Left (ConnectFour.AI.Draw, bMoves))) -> compare 1 0
-          (Analysis (Left (ConnectFour.AI.P2Win, aMoves)), Analysis (Left (ConnectFour.AI.P2Win, bMoves))) -> compare aMoves bMoves
-          (Analysis (Right (aScore, aMoves)), Analysis (Right (bScore, bMoves))) -> compare bMoves aMoves
+data HeuristicAnalysis = HeuristicAnalysis (Score, Depth)
+  deriving (Eq)
 
-          _ -> compare 0 1
-    where
-      aScore = getScore a
-      bScore = getScore b
+instance Show HeuristicAnalysis where
+  show (HeuristicAnalysis (score, depth)) = "Score: " ++ (show score) ++ ", Depth: " ++ (show depth)
+
+instance Analysis HeuristicAnalysis where
+  score (HeuristicAnalysis (score, _)) = score
+  mixedAnalysis a = MixedAnalysis (Right a)
+
+instance Ord HeuristicAnalysis where
+  compare (HeuristicAnalysis (scoreA, movesA)) (HeuristicAnalysis (scoreB, movesB))
+    | scoreA /= scoreB = compare scoreA scoreB
+    | scoreA > 0 = compare movesB movesA
+    | otherwise = compare movesA movesB
+
+-- Mixed analysis
+data MixedAnalysis = MixedAnalysis (Either DeductiveAnalysis HeuristicAnalysis)
+  deriving (Show, Eq)
+
+compareMixedAnalysis :: MixedAnalysis -> MixedAnalysis -> Ordering
+compareMixedAnalysis (MixedAnalysis (Left a)) (MixedAnalysis (Left b)) = compare a b
+compareMixedAnalysis (MixedAnalysis (Right a)) (MixedAnalysis (Right b)) = compare a b
+compareMixedAnalysis (MixedAnalysis (Left a)) ((MixedAnalysis (Right b))) = do
+  case (a, b) of
+    ((DeductiveAnalysis (result, _)), HeuristicAnalysis (score, _)) -> do
+      case result of
+        P1Win -> compare 1 0
+        NoWin -> do
+          let result | score >= 0 = compare 0 1
+                     | otherwise = compare 1 0 in
+            result
+        P2Win -> compare 0 1
+compareMixedAnalysis a b = if b <= a then (compare 1 0) else (compare 0 1)
+
+instance Ord MixedAnalysis where
+  compare a b = compareMixedAnalysis a b

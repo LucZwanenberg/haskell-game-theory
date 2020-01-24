@@ -98,5 +98,5 @@ bestMove game = case playerToMove game of
   PlayerTwo -> minimum ( analyzeMoves game )
 
 analyzeMoves :: Game -> [MoveScore]
--- TODO: implement analyze moves
-analyzeMoves game = [(A (mixedAnalysis (HeuristicAnalysis(12, 2))))]
+-- TODO: implement analyzeMoves
+analyzeMoves game= [MoveScore A (mixedAnalysis (HeuristicAnalysis(12, 2)))]

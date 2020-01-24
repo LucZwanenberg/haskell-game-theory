@@ -116,3 +116,7 @@ diagonals = map concat
           . transpose
           . zipWith (\ns xs -> ns ++ map (:[]) xs)
                     (iterate ([]:) [])
+
+playerToMove :: Game -> Player
+playerToMove game | (length game) `mod` 2 == 0 = PlayerOne
+                  | otherwise = PlayerTwo

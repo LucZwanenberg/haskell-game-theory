@@ -1,6 +1,7 @@
 module ConnectFour.AI where
 
 import ConnectFour.Definitions
+import ConnectFour.Game
 
 class Analysis a where
   score :: a -> Int
@@ -79,3 +80,23 @@ compareMixedAnalysis a b = if b <= a then (compare 1 0) else (compare 0 1)
 
 instance Ord MixedAnalysis where
   compare a b = compareMixedAnalysis a b
+
+-- Analyze moves
+data MoveScore = MoveScore Move MixedAnalysis
+  deriving (Eq, Show)
+
+instance Ord MoveScore where
+  compare (MoveScore _ a1) (MoveScore _ a2) = compare a1 a2
+
+getMove :: Game -> Move
+getMove game = case bestMove game of
+  MoveScore move score -> move
+
+bestMove :: Game -> MoveScore
+bestMove game = case playerToMove game of
+  PlayerOne -> maximum ( analyzeMoves game )
+  PlayerTwo -> minimum ( analyzeMoves game )
+
+analyzeMoves :: Game -> [MoveScore]
+-- TODO: implement analyze moves
+analyzeMoves game = [(A (mixedAnalysis (HeuristicAnalysis(12, 2))))]

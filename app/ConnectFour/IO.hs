@@ -4,7 +4,7 @@ import Lib
 import ConnectFour.Definitions
 import ConnectFour.Game
 import ConnectFour.Board
-import ConnectFour.AI
+import ConnectFour.AI as AI
 
 inputToMove :: String -> Maybe Move
 inputToMove "A" = Just A
@@ -34,6 +34,15 @@ processHumanMove game move = do
       putStrLn ( "Error: " ++ (show error) )
       requestHumanMove game
 
+makeAIMove :: Game -> IO ()
+makeAIMove game = do
+  let move = AI.getMove game in do
+    putStrLn ("Computer: " ++ show move)
+    case makeMove game move of
+      Left game -> do
+        processGame game
+      Right error -> putStrLn ("Error: " ++ (show error))
+
 processGame :: Game -> IO ()
 processGame game = do
   putStrLn (showGame game)
@@ -41,7 +50,7 @@ processGame game = do
     Active -> do
       case (length game) `mod` 2 of
         0 -> requestHumanMove game
-        _ -> requestHumanMove game -- TODO: make AI move
+        _ -> makeAIMove game
     a -> do
       putStrLn (show a)
       requestRematch ()

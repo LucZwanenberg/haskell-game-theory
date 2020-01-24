@@ -97,7 +97,10 @@ getMove :: Game -> Move
 getMove game = bestMove game
 
 bestMove :: Game -> Move
-bestMove game = case (bestMoveAnalysis game 4) of
+bestMove = depthBestMove 4
+
+depthBestMove :: Depth -> Game -> Move
+depthBestMove depth game = case (bestMoveAnalysis game depth) of
   MoveAnalysis move score -> move
 
 bestMoveAnalysis :: Game -> Depth -> MoveAnalysis
@@ -114,9 +117,12 @@ analyzeMove game depth move = do
     Left game -> do
       case (deductiveAnalysisDepth0 game) of
         Just a -> Left ( MoveAnalysis move (mixedAnalysis (increaseMoves a)))
-        -- TODO: if depth <= 1, then apply heuristic move analysis
-        -- otherwise, recursion on bestMove + increase depth/moves
-        Nothing -> Left (MoveAnalysis move (mixedAnalysis (HeuristicAnalysis (0, 0))))
+        Nothing -> do
+          let result | depth > 1 = do
+                        case (bestMoveAnalysis game (depth - 1)) of
+                          (MoveAnalysis submove analysis) -> Left (MoveAnalysis move (increaseDepthMove analysis))
+                     | otherwise = Left ( MoveAnalysis move (mixedAnalysis (increaseDepth (heuristicAnalysisDepth0 game)))) in
+            result
     Right moveError -> Right moveError
 
 deductiveAnalysisDepth0 :: Game -> (Maybe DeductiveAnalysis)

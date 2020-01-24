@@ -178,16 +178,17 @@ spec = do
               \x  y -> (x :: MixedAnalysis) <= (y :: MixedAnalysis) || y <= x
 
     describe "#bestMove" $ do
-      context "can win this move" $ do
-        it "will connect four" $ do
-          bestMove [B, C, B, C, B, C] `shouldBe` B
-      context "cannot win this move" $ do
-        context "opponent could connect four next four if not blocked" $ do
-          it "will block" $ do
-            bestMove [B, C, B, C, B] `shouldBe` B
-      it "will setup a multi-directional attack" $ do
-        bestMove [B, B, D, D] `shouldBe` C
-      it "will prevent a multi-directional attack" $ do
-        bestMove [B, B, D] `shouldBe` C
+      describe "tactics" $ do
+        context "can win this move" $ do
+          it "will connect four" $ do
+            depthBestMove 1 [B, C, B, C, B, C] `shouldBe` B
+        context "cannot win this move" $ do
+          context "opponent could connect four next four if not blocked" $ do
+            it "will block" $ do
+              depthBestMove 2 [B, C, B, C, B] `shouldBe` B
+        it "will setup a multi-directional attack" $ do
+          depthBestMove 3 [B, B, D, D] `shouldBe` C
+        it "will prevent a multi-directional attack" $ do
+          elem (depthBestMove 4 [C, C, E]) [B, D, F] `shouldBe` True
 
 

@@ -36,12 +36,14 @@ processHumanMove game move = do
 
 makeAIMove :: Game -> IO ()
 makeAIMove game = do
-  let move = AI.getMove game in do
-    putStrLn ("Computer: " ++ show move)
-    case makeMove game move of
-      Left game -> do
-        processGame game
-      Right error -> putStrLn ("Error: " ++ (show error))
+  case (AI.bestMoveAnalysis game 5) of
+    (MoveAnalysis move analysis) -> do
+      putStrLn ("Computer: " ++ show move)
+      putStrLn (show analysis)
+      case makeMove game move of
+        Left game -> do
+          processGame game
+        Right error -> putStrLn ("Error: " ++ (show error))
 
 processGame :: Game -> IO ()
 processGame game = do

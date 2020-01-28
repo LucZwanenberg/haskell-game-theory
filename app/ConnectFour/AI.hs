@@ -150,6 +150,9 @@ increaseMoves (DeductiveAnalysis (result, moves)) = DeductiveAnalysis (result, m
 increaseDepth :: HeuristicAnalysis -> HeuristicAnalysis
 increaseDepth (HeuristicAnalysis (score, depth)) = HeuristicAnalysis (score, depth + 1)
 
+heuristicAnalysisDepth0 :: Game -> HeuristicAnalysis
+heuristicAnalysisDepth0 game = HeuristicAnalysis (((analyzeSubarrays game) + (analyzeCriticalSquares game)), 0)
+
 -- Subarray analysis
 ---------------------
 -- Discs that can still be part of a four in a row will
@@ -157,9 +160,6 @@ increaseDepth (HeuristicAnalysis (score, depth)) = HeuristicAnalysis (score, dep
 -- chains that are "almost" completed, will also be scored
 -- higher. E.g. a disc that is already part of a three in a
 -- row, will be scored higher than a sole disc.
-heuristicAnalysisDepth0 :: Game -> HeuristicAnalysis
-heuristicAnalysisDepth0 game = HeuristicAnalysis (((analyzeSubarrays game) + (analyzeCriticalSquares game)), 0)
-
 analyzeSubarrays :: Game -> Score
 analyzeSubarrays game = sum (map scoreSubarray (subarraysLength4 (analysisMatrix game)))
 
@@ -201,7 +201,72 @@ analyzeCriticalSquares :: Game -> Score
 analyzeCriticalSquares game = sum (scoreCriticalSquareColumn `map` (rotateMatrixLeft (criticalSquareMatrix game)))
 
 scoreCriticalSquareColumn :: [CriticalSquareMatrixValue] -> Score
-scoreCriticalSquareColumn column = 0 -- TODO
+scoreCriticalSquareColumn column = do
+  let summary = criticalSquareColumnSummary (discardWorthlessCriticalSquares column) in
+    case summary of
+      (Just d1, Just cr1, Just d2, Just cr2) -> scoreTwoElements d1 cr1 d2 cr2
+      (Just d1, Just cr2, _, _) -> scoreSingleElement d1 cr2
+      _ -> 0
+
+scoreSingleElement :: Int -> CriticalSquareMatrixValue -> Score
+scoreSingleElement distance CriticalP1 = 5000 - (distance * 800)
+scoreSingleElement distance CriticalP2 = - (5000 - (distance * 800))
+scoreSingleElement _ _ = 0
+
+scoreTwoElements :: Int -> CriticalSquareMatrixValue -> Int -> CriticalSquareMatrixValue -> Score
+-- Fully dominate column without gap
+scoreTwoElements d1 CriticalP1 0 CriticalP1 = 100000 - (d1 * 10000)
+scoreTwoElements d1 CriticalP2 0 CriticalP2 = -(100000 - (d1 * 10000))
+
+-- Fully dominate column with gap
+scoreTwoElements d1 CriticalP1 d2 CriticalP1 = 50000 - (d1 * 1000) - (d2 * 500)
+scoreTwoElements d1 CriticalP2 d2 CriticalP2 = -(50000 - (d1 * 1000) - (d2 * 500))
+
+-- Partially dominate ++
+scoreTwoElements d1 CriticalP1 d2 CriticalBoth = 20000 - (d1 * 1000) - (d2 * 500)
+scoreTwoElements d1 CriticalP2 d2 CriticalBoth = -(20000 - (d1 * 1000) - (d2 * 500))
+
+-- Partially dominate
+scoreTwoElements d1 CriticalP1 d2 CriticalP2 = 10000 - (d1 * 1000) - (d2 * 500)
+scoreTwoElements d1 CriticalP2 d2 CriticalP1 = -(10000 - (d1 * 1000) - (d2 * 500))
+
+-- Neutral situation
+scoreTwoElements _ _ _ _ = 0
+
+criticalSquareColumnSummary :: [CriticalSquareMatrixValue] -> ((Maybe Int), (Maybe CriticalSquareMatrixValue), (Maybe Int), (Maybe CriticalSquareMatrixValue))
+criticalSquareColumnSummary column = do
+  let reverseColumn = reverse column in
+    ((distanceToFirstCrSquare reverseColumn), (firstCriticalSquare reverseColumn), (distanceBetweenFirstCriticalSquares reverseColumn), (secondCriticalSquare reverseColumn))
+
+distanceToFirstCrSquare :: [CriticalSquareMatrixValue] -> Maybe Int
+distanceToFirstCrSquare (Occupied:xs) = distanceToFirstCrSquare xs
+distanceToFirstCrSquare (NotCritical:xs) = do
+    let subDistance = (distanceToFirstCrSquare xs) in
+      case subDistance of
+        Just x -> Just (1 + x)
+        Nothing -> Nothing
+distanceToFirstCrSquare (CriticalP1:xs) = Just 0
+distanceToFirstCrSquare (CriticalP2:xs) = Just 0
+distanceToFirstCrSquare (CriticalBoth:xs) = Just 0
+distanceToFirstCrSquare _ = Nothing
+
+firstCriticalSquare :: [CriticalSquareMatrixValue] -> Maybe CriticalSquareMatrixValue
+firstCriticalSquare (NotCritical:xs) = firstCriticalSquare xs
+firstCriticalSquare (Occupied:xs) = firstCriticalSquare xs
+firstCriticalSquare (x:xs) = Just x
+firstCriticalSquare _ = Nothing
+
+distanceBetweenFirstCriticalSquares :: [CriticalSquareMatrixValue] -> Maybe Int
+distanceBetweenFirstCriticalSquares (NotCritical:xs) = distanceBetweenFirstCriticalSquares xs
+distanceBetweenFirstCriticalSquares (Occupied:xs) = distanceBetweenFirstCriticalSquares xs
+distanceBetweenFirstCriticalSquares (x:xs) = distanceToFirstCrSquare xs
+distanceBetweenFirstCriticalSquares _ = Nothing
+
+secondCriticalSquare :: [CriticalSquareMatrixValue] -> Maybe CriticalSquareMatrixValue
+secondCriticalSquare (NotCritical:xs) = secondCriticalSquare xs
+secondCriticalSquare (Occupied:xs) = secondCriticalSquare xs
+secondCriticalSquare (x:xs) = firstCriticalSquare xs
+secondCriticalSquare _ = Nothing
 
 discardWorthlessCriticalSquares :: [CriticalSquareMatrixValue] -> [CriticalSquareMatrixValue]
 discardWorthlessCriticalSquares squares = do

@@ -280,3 +280,166 @@ spec = do
                 , AI.Occupied ]
           in
           discardWorthlessCriticalSquares initial `shouldBe` simplified
+
+    describe "#criticalSquareColumnSummary" $ do
+      it "example 1" $ do
+        let
+          summary = do
+            criticalSquareColumnSummary
+              [   AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.Occupied
+                , AI.Occupied ]
+          in
+            summary `shouldBe` (Just 1, Just CriticalP1, Nothing, Nothing)
+
+      it "example 2" $ do
+        let
+          summary = do
+            criticalSquareColumnSummary
+              [   AI.NotCritical
+                , AI.CriticalBoth
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.Occupied ]
+          in
+            summary `shouldBe` (Just 2, Just CriticalP1, Just 0, Just CriticalBoth)
+
+      it "example 3" $ do
+        let
+          summary = do
+            criticalSquareColumnSummary
+              [   AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.Occupied
+                , AI.Occupied
+                , AI.Occupied ]
+          in
+            summary `shouldBe` (Nothing, Nothing, Nothing, Nothing)
+
+    describe "#scoreCriticalSquareColumn" $ do
+      context "column without critical squares" $ do
+        it "is scored neutrally" $ do
+          let
+            score = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical ]
+            in
+            score `shouldBe` 0
+
+      context "column with single critical square for both players" $ do
+        it "is scored neutrally" $ do
+          let
+            score = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalBoth
+                , AI.NotCritical
+                , AI.NotCritical ]
+            in
+            score `shouldBe` 0
+
+      context "column with multiple critical squares for both players" $ do
+        it "is scored neutrally" $ do
+          let
+            score = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.CriticalBoth
+                , AI.NotCritical
+                , AI.CriticalBoth
+                , AI.CriticalBoth
+                , AI.NotCritical ]
+            in
+            score `shouldBe` 0
+
+      context "column with single critical square for p1" $ do
+        it "is scored positively for p1" $ do
+          let
+            score = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.NotCritical ]
+            in
+            score > 0`shouldBe` True
+
+      context "column with lower critical square" $ do
+        it "has a higher score than column with higher critical square" $ do
+          let
+            score1 = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical ]
+            score2 = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical ]
+            in
+            score1 > score2 `shouldBe` True
+
+      context "column with critical square directly above opponent's critical square" $ do
+        it "does not influence the score" $ do
+          let
+            score1 = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical ]
+            score2 = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalP2
+                , AI.CriticalP1
+                , AI.NotCritical ]
+            in
+            score1 == score2 `shouldBe` True
+
+      context "column with critical square in partially filled up column" $ do
+        it "is scored higher than critical square in empty column" $ do
+          let
+            score1 = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.Occupied
+                , AI.Occupied
+                , AI.Occupied ]
+            score2 = do
+              scoreCriticalSquareColumn
+                [ AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical ]
+            in
+            score1 > score2 `shouldBe` True

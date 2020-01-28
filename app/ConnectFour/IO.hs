@@ -43,7 +43,7 @@ processHumanMove game move = do
 
 makeAIMove :: Game -> IO ()
 makeAIMove game = do
-  case (AI.bestMoveAnalysis game 7) of
+  case (AI.bestMoveAnalysis game 5) of
     (MoveAnalysis move analysis) -> do
       putStrLn ("Computer: " ++ show move)
       putStrLn (show analysis)

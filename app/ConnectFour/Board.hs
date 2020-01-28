@@ -1,5 +1,7 @@
 module ConnectFour.Board where
 
+import Helpers
+
 import ConnectFour.Definitions
 
 opposingPlayer :: Player -> Player
@@ -19,14 +21,15 @@ showSlot (Just Red) = "[O]"
 showRow (a0, a1, a2, a3, a4, a5, a6) = (showSlot a0) ++ " " ++ (showSlot a1) ++ " " ++ (showSlot a2) ++ " " ++ (showSlot a3) ++ " " ++ (showSlot a4) ++ " " ++ (showSlot a5) ++ " " ++ (showSlot a6)
 showBoard (a0, a1, a2, a3, a4, a5) = header ++ (showRow a0) ++ "\n" ++ (showRow a1) ++ "\n" ++ (showRow a2) ++ "\n" ++ (showRow a3) ++ "\n" ++ (showRow a4) ++ "\n" ++ (showRow a5)
 
-columnIndex :: ColumnID -> Int
-columnIndex A = 0
-columnIndex B = 1
-columnIndex C = 2
-columnIndex D = 3
-columnIndex E = 4
-columnIndex F = 5
-columnIndex G = 6
+type ColumnNumber = Int
+columnNumber :: ColumnID -> ColumnNumber
+columnNumber A = 0
+columnNumber B = 1
+columnNumber C = 2
+columnNumber D = 3
+columnNumber E = 4
+columnNumber F = 5
+columnNumber G = 6
 
 emptyBoard :: Board
 emptyBoard = (emptyRow, emptyRow, emptyRow, emptyRow, emptyRow, emptyRow)
@@ -40,7 +43,7 @@ gameToBoard' board _ player = board
 
 rowSlotIsEmpty :: ColumnID -> [Slot] -> Bool
 -- TODO: use zip to avoid runtime errors?
-rowSlotIsEmpty column slots = (slots!!(columnIndex column)) == Nothing
+rowSlotIsEmpty column slots = (slots!!(columnNumber column)) == Nothing
 
 matrixSet :: [[a]] -> Int -> Int -> a -> [[a]]
 -- TODO: use zip to avoid runetime errors?
@@ -51,7 +54,7 @@ dropDisc disc column board = boardMatrixTransformation board (dropDisc' disc col
 
 dropDisc' ::  Disc -> ColumnID -> [[Slot]] -> [[Slot]]
 dropDisc' disc column matrix = do
-  let ci = (columnIndex column) in
+  let ci = (columnNumber column) in
     let mri = findLastIndex (rowSlotIsEmpty column) matrix  in
       case mri of
         Just ri -> matrixSet matrix ci ri (Just disc)
@@ -72,44 +75,5 @@ rowToList row = pairToList7 row
 listToRow :: [Slot] -> Row
 listToRow slots = listToPair7 slots
 
-pairToList6 :: (a, a, a, a, a, a) -> [a]
-pairToList6 (a0, a1, a2, a3, a4, a5) = [a0, a1, a2, a3, a4, a5]
-
-listToPair7 :: [a] -> (a, a, a, a, a, a, a)
-listToPair7 [a0, a1, a2, a3, a4, a5, a6] = (a0, a1, a2, a3, a4, a5, a6)
-
-listToPair6 :: [a] -> (a, a, a, a, a, a)
-listToPair6 [a0, a1, a2, a3, a4, a5] = (a0, a1, a2, a3, a4, a5)
-
-pairToList7 :: (a, a, a, a, a, a, a) -> [a]
-pairToList7 (a0, a1, a2, a3, a4, a5, a6) = [a0, a1, a2, a3, a4, a5, a6]
-
-replaceInList :: [a] -> Int -> a -> [a]
-replaceInList (x:xs) 0 a = [a] ++ xs
-replaceInList (x:xs) i a = [x] ++ (replaceInList xs (i - 1) a)
-replaceInList [] _ _ = []
-
-findLastEmpty :: [Maybe a] -> Maybe Int
-findLastEmpty items = findIndex isNothing (reverse [])
-
-isNothing :: Maybe a -> Bool
-isNothing Nothing = True
-isNothing _ = False
-
-findLastIndex :: (a -> Bool) -> [a] -> Maybe Int
-findLastIndex matcher items = do
-  let index = findIndex matcher (reverse items) in
-    case index of
-      Just i -> Just (((length items) - 1) - i)
-      _ -> Nothing
-
-findIndex :: (a -> Bool) -> [a] -> Maybe Int
-findIndex matcher (x:xs) | matcher x = Just 0
-                         | otherwise = do
-                           let index = findIndex matcher xs in
-                             case index of
-                               Just i -> Just (i + 1)
-                               _ -> Nothing
-findIndex _ _ = Nothing
 
 

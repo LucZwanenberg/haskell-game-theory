@@ -76,6 +76,20 @@ gameToMatrix game = boardToMatrix ( gameToBoard game )
 analysisMatrix :: Game -> [[Int]]
 analysisMatrix game = transformMatrix analysisValue (gameToMatrix game)
 
+mapWithIndex :: [a] -> (Int -> a -> b) -> [b]
+mapWithIndex items transform = mapWithGivenIndex 0 items transform
+
+mapWithGivenIndex :: Int -> [a] -> (Int -> a -> b) -> [b]
+mapWithGivenIndex index (x:xs) transform = [transform index x] ++ (mapWithGivenIndex (index + 1) xs transform)
+mapWithGivenIndex _ _ _ = []
+
+labeledAnalysisMatrix :: Game -> [[(ColumnNumber, RowNumber, Int)]]
+labeledAnalysisMatrix game = do
+  mapWithIndex (analysisMatrix game)
+    (\rowNumber row -> do
+      (mapWithIndex row (\columnNumber value -> (columnNumber, rowNumber, value)))
+    )
+
 analysisValue :: Slot -> Int
 analysisValue (Just Yellow) = 1
 analysisValue (Just Red) = -1

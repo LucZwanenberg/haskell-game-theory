@@ -3,6 +3,8 @@ module ConnectFour.Definitions where
 data ColumnID = A | B | C | D | E | F | G
   deriving (Eq, Show)
 
+type RowNumber = Int
+
 type Move = ColumnID
 
 type Game = [Move]

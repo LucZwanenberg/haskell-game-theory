@@ -191,4 +191,12 @@ spec = do
         it "will prevent a multi-directional attack" $ do
           elem (depthBestMove 4 [C, C, E]) [B, D, F] `shouldBe` True
 
-
+    describe "#criticalSquareMatrix" $ do
+      it "marks critical squares" $ do
+        criticalSquareMatrix [D, D, C, E, E, F, E, F, F, G, D, F, G, E, B, D] `shouldBe`
+          [ [AI.NotCritical,  AI.NotCritical, AI.NotCritical, AI.NotCritical, AI.NotCritical, AI.NotCritical, AI.NotCritical]
+          , [AI.NotCritical,  AI.NotCritical, AI.NotCritical, AI.NotCritical, AI.NotCritical, AI.NotCritical, AI.NotCritical]
+          , [AI.NotCritical,  AI.NotCritical, AI.CriticalP2,  AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.CriticalBoth]
+          , [AI.NotCritical,  AI.NotCritical, AI.CriticalP1,  AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.CriticalP1]
+          , [AI.NotCritical,  AI.NotCritical, AI.NotCritical, AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.Occupied]
+          , [AI.CriticalP1,   AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.Occupied]]

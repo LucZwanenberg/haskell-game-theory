@@ -8,15 +8,15 @@ instance Show ColumnID where
   show B = "B"
   show C = "C"
 
-data RowID = One | Two | Three
+data RowNumber = One | Two | Three
   deriving (Eq)
 
-instance Show RowID where
+instance Show RowNumber where
   show One = "1"
   show Two = "2"
   show Three = "3"
 
-data Move = Move ColumnID RowID
+data Move = Move ColumnID RowNumber
   deriving (Eq)
 
 instance Show Move where

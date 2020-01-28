@@ -1,7 +1,10 @@
 module ConnectFour.AI where
 
+import Helpers
+
 import ConnectFour.Definitions
 import ConnectFour.Game
+import ConnectFour.Board
 
 filterLeft :: [Either a b] -> [a]
 filterLeft ((Left x):xs) = [x] ++ (filterLeft xs)
@@ -171,3 +174,75 @@ analyzeSubarray (x:xs) = do
         -1 -> (p1, p2 + 1)
         _ -> (p1, p2)
 analyzeSubarray _ = (0, 0)
+
+data CriticalSquareMatrixValue = Occupied | CriticalP1 | CriticalP2 | CriticalBoth | NotCritical
+  deriving (Eq, Show)
+
+initCriticalMatrixRow = [NotCritical, NotCritical, NotCritical, NotCritical, NotCritical, NotCritical, NotCritical]
+initCriticalMatrix = [initCriticalMatrixRow, initCriticalMatrixRow, initCriticalMatrixRow, initCriticalMatrixRow, initCriticalMatrixRow, initCriticalMatrixRow]
+
+emptyCriticalMatrixRow :: [Maybe CriticalSquareMatrixValue]
+emptyCriticalMatrixRow = [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]
+
+emptyCritialSquareMatrix :: [[Maybe CriticalSquareMatrixValue]]
+emptyCritialSquareMatrix = [emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow]
+
+setOccupiedSquares :: [[CriticalSquareMatrixValue]] -> Game -> [[CriticalSquareMatrixValue]]
+setOccupiedSquares matrix game = combineMatrices matrix (gameToMatrix game) (\a b -> do
+    case b of
+      Nothing -> a
+      _ -> Occupied
+  )
+
+occupiedSpacesMatrix :: Game -> [[(Maybe CriticalSquareMatrixValue)]]
+occupiedSpacesMatrix game = do
+  mapMatrix (\x -> do
+      case x of
+        Just _ -> Just Occupied
+        Nothing -> Nothing
+    ) (gameToMatrix game)
+
+p1CriticalMatrix :: Game -> [[(Maybe CriticalSquareMatrixValue)]]
+p1CriticalMatrix game = do
+  foldl (\x y -> do
+      case y of
+        [(_, _, 1), (_, _, 1), (_, _, 1), (c, r, 0)] -> matrixSetValue x c r (Just CriticalP1)
+        [(_, _, 1), (_, _, 1), (c, r, 0), (_, _, 1)] -> matrixSetValue x c r (Just CriticalP1)
+        [(_, _, 1), (c, r, 0), (_, _, 1), (_, _, 1)] -> matrixSetValue x c r (Just CriticalP1)
+        [(c, r, 0), (_, _, 1), (_, _, 1), (_, _, 1)] -> matrixSetValue x c r (Just CriticalP1)
+        _ -> x
+    ) emptyCritialSquareMatrix (subarraysLength4 ( labeledAnalysisMatrix game ))
+
+p2CriticalMatrix :: Game -> [[(Maybe CriticalSquareMatrixValue)]]
+p2CriticalMatrix game = do
+  foldl (\x y -> do
+      case y of
+        [(_, _, -1), (_, _, -1), (_, _, -1), (c, r, 0)] -> matrixSetValue x c r (Just CriticalP2)
+        [(_, _, -1), (_, _, -1), (c, r, 0), (_, _, -1)] -> matrixSetValue x c r (Just CriticalP2)
+        [(_, _, -1), (c, r, 0), (_, _, -1), (_, _, -1)] -> matrixSetValue x c r (Just CriticalP2)
+        [(c, r, 0), (_, _, -1), (_, _, -1), (_, _, -1)] -> matrixSetValue x c r (Just CriticalP2)
+        _ -> x
+    ) emptyCritialSquareMatrix (subarraysLength4 ( labeledAnalysisMatrix game ))
+
+criticalSquareMatrix :: Game -> [[CriticalSquareMatrixValue]]
+criticalSquareMatrix game = do
+  let initMatrix = initCriticalMatrix
+      osMatrix = occupiedSpacesMatrix game
+      p1Matrix = p1CriticalMatrix game
+      p2Matrix = p2CriticalMatrix game in
+        combine4Matrices initMatrix osMatrix p1Matrix p2Matrix (\a b c d -> combineValues a [b, c, d])
+
+combineValues :: CriticalSquareMatrixValue -> [Maybe CriticalSquareMatrixValue] -> CriticalSquareMatrixValue
+combineValues a (x:xs) = combineValues (combineValue a x) xs
+combineValues a _ = a
+
+combineValue :: CriticalSquareMatrixValue -> (Maybe CriticalSquareMatrixValue) -> CriticalSquareMatrixValue
+combineValue CriticalP1 (Just CriticalP2) = CriticalBoth
+combineValue CriticalP2 (Just CriticalP1) = CriticalBoth
+combineValue CriticalP1 _ = CriticalP1
+combineValue _ (Just CriticalP1) = CriticalP1
+combineValue CriticalP2 _ = CriticalP2
+combineValue _ (Just CriticalP2) = CriticalP2
+combineValue Occupied _ = Occupied
+combineValue _ (Just Occupied) = Occupied
+combineValue a _ = a

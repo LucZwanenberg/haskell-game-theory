@@ -6,6 +6,8 @@ import ConnectFour.Definitions
 import ConnectFour.Game
 import ConnectFour.Board
 
+import Data.List
+
 filterLeft :: [Either a b] -> [a]
 filterLeft ((Left x):xs) = [x] ++ (filterLeft xs)
 filterLeft (_:xs) = filterLeft xs
@@ -148,11 +150,18 @@ increaseMoves (DeductiveAnalysis (result, moves)) = DeductiveAnalysis (result, m
 increaseDepth :: HeuristicAnalysis -> HeuristicAnalysis
 increaseDepth (HeuristicAnalysis (score, depth)) = HeuristicAnalysis (score, depth + 1)
 
+-- Subarray analysis
+---------------------
+-- Discs that can still be part of a four in a row will
+-- result in a better score for that player. Moreover,
+-- chains that are "almost" completed, will also be scored
+-- higher. E.g. a disc that is already part of a three in a
+-- row, will be scored higher than a sole disc.
 heuristicAnalysisDepth0 :: Game -> HeuristicAnalysis
-heuristicAnalysisDepth0 game = HeuristicAnalysis ((analysisSubarrays game), 0)
+heuristicAnalysisDepth0 game = HeuristicAnalysis (((analyzeSubarrays game) + (analyzeCriticalSquares game)), 0)
 
-analysisSubarrays :: Game -> Score
-analysisSubarrays game = sum (map scoreSubarray (subarraysLength4 (analysisMatrix game)))
+analyzeSubarrays :: Game -> Score
+analyzeSubarrays game = sum (map scoreSubarray (subarraysLength4 (analysisMatrix game)))
 
 scoreSubarray :: [Int] -> Score
 scoreSubarray array = do
@@ -175,10 +184,69 @@ analyzeSubarray (x:xs) = do
         _ -> (p1, p2)
 analyzeSubarray _ = (0, 0)
 
+-- Critical square analysis
+---------------------------
+-- A critical square for player x is a square that would
+-- win the game for x if a player x's disc would occupy that
+-- space. Critical spaces lower on the board are generally better.
+-- Moreover, certain combinations are more valuable than others.
+-- For example, having two critical squares directly on top of each
+-- other are extremely valuable, as filling up that column would
+-- eventually force a win, provided that the opponent does not have
+-- critical squares below this specific combination.
 data CriticalSquareMatrixValue = Occupied | CriticalP1 | CriticalP2 | CriticalBoth | NotCritical
   deriving (Eq, Show)
 
+analyzeCriticalSquares :: Game -> Score
+analyzeCriticalSquares game = sum (scoreCriticalSquareColumn `map` (rotateMatrixLeft (criticalSquareMatrix game)))
+
+scoreCriticalSquareColumn :: [CriticalSquareMatrixValue] -> Score
+scoreCriticalSquareColumn column = 0 -- TODO
+
+discardWorthlessCriticalSquares :: [CriticalSquareMatrixValue] -> [CriticalSquareMatrixValue]
+discardWorthlessCriticalSquares squares = do
+  let
+    bottomSquare = last squares
+    remainingSquares = Data.List.init squares
+    resultingSquares = do
+      case bottomSquare of
+        CriticalP1 -> do
+          (removePlayerCriticalities PlayerTwo Odd (removePlayerCriticalities PlayerOne Even remainingSquares)) ++ [bottomSquare]
+        CriticalP2 -> do
+          (removePlayerCriticalities PlayerOne Odd (removePlayerCriticalities PlayerTwo Even remainingSquares)) ++ [bottomSquare]
+        CriticalBoth -> (removeAllPlayerCriticalities remainingSquares) ++ [bottomSquare]
+        _ -> remainingSquares ++ [bottomSquare]
+    remainingResultingSquares = Data.List.init resultingSquares
+      in
+        if length resultingSquares > 1 then
+          (discardWorthlessCriticalSquares (Data.List.init resultingSquares))++ [bottomSquare]
+        else
+          [bottomSquare]
+
+
+data Parity = Odd | Even
+ deriving (Eq, Show)
+
+removeAllPlayerCriticalities :: [CriticalSquareMatrixValue] -> [CriticalSquareMatrixValue]
+removeAllPlayerCriticalities (x:xs) = [(removePlayerCriticality PlayerTwo (removePlayerCriticality PlayerOne x))] ++ (removeAllPlayerCriticalities xs)
+removeAllPlayerCriticalities _ = []
+
+removePlayerCriticalities :: Player -> Parity -> [CriticalSquareMatrixValue] -> [CriticalSquareMatrixValue]
+removePlayerCriticalities _ _ [] = []
+removePlayerCriticalities player Odd items = (removePlayerCriticalities player Even (Data.List.init items)) ++ [(removePlayerCriticality player (last items))]
+removePlayerCriticalities player Even items = (removePlayerCriticalities player Odd (Data.List.init items)) ++ [(last items)]
+
+removePlayerCriticality :: Player -> CriticalSquareMatrixValue -> CriticalSquareMatrixValue
+removePlayerCriticality PlayerOne CriticalP1 = NotCritical
+removePlayerCriticality PlayerOne CriticalBoth = CriticalP2
+removePlayerCriticality PlayerTwo CriticalP2 = NotCritical
+removePlayerCriticality PlayerTwo CriticalBoth = CriticalP1
+removePlayerCriticality _ initial = initial
+
+initCriticalMatrixRow :: [CriticalSquareMatrixValue]
 initCriticalMatrixRow = [NotCritical, NotCritical, NotCritical, NotCritical, NotCritical, NotCritical, NotCritical]
+
+initCriticalMatrix :: [[CriticalSquareMatrixValue]]
 initCriticalMatrix = [initCriticalMatrixRow, initCriticalMatrixRow, initCriticalMatrixRow, initCriticalMatrixRow, initCriticalMatrixRow, initCriticalMatrixRow]
 
 emptyCriticalMatrixRow :: [Maybe CriticalSquareMatrixValue]

@@ -1,8 +1,10 @@
 module ConnectFour.Game where
 
+import Data.List
+
 import ConnectFour.Definitions
 import ConnectFour.Board as Board
-import Data.List
+import Helpers
 
 winner :: Game -> Maybe Player
 winner game | arrayContains sumValues 4 = Just PlayerOne
@@ -115,10 +117,7 @@ horizontalSubarrays :: [[a]] -> [[a]]
 horizontalSubarrays matrix = matrix
 
 verticalSubarrays :: [[a]] -> [[a]]
-verticalSubarrays matrix = rotl matrix
-
-rotl :: [[x]] -> [[x]]
-rotl = transpose . map reverse
+verticalSubarrays matrix = rotateMatrixLeft matrix
 
 diagonalSubarrays :: [[a]] -> [[a]]
 diagonalSubarrays matrix = (diagonalSubarrays' matrix) ++ (diagonalSubarrays'' matrix)
@@ -127,7 +126,7 @@ diagonalSubarrays' :: [[a]] -> [[a]]
 diagonalSubarrays' matrix = diagonals matrix
 
 diagonalSubarrays'' :: [[a]] -> [[a]]
-diagonalSubarrays'' matrix = diagonals (rotl matrix)
+diagonalSubarrays'' matrix = diagonals (rotateMatrixLeft matrix)
 
 diagonals = map concat
           . transpose

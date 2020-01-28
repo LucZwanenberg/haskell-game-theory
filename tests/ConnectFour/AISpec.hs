@@ -200,3 +200,83 @@ spec = do
           , [AI.NotCritical,  AI.NotCritical, AI.CriticalP1,  AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.CriticalP1]
           , [AI.NotCritical,  AI.NotCritical, AI.NotCritical, AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.Occupied]
           , [AI.CriticalP1,   AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.Occupied,    AI.Occupied]]
+
+    describe "#discardWorthlessCriticalSquares" $ do
+      it "removes succeeding cr squares of equal parity for player" $ do
+        let
+          initial = do
+              [   AI.CriticalP1
+                , AI.CriticalP1
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical ]
+
+          simplified = do
+              [   AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical ]
+          in
+          discardWorthlessCriticalSquares initial `shouldBe` simplified
+      it "removes succeeding cr squares of opposite parity for opponent"  $ do
+        let
+          initial = do
+              [   AI.NotCritical
+                , AI.CriticalP2
+                , AI.CriticalP2
+                , AI.CriticalP2
+                , AI.CriticalP1
+                , AI.NotCritical ]
+
+          simplified = do
+              [   AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalP2
+                , AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical ]
+          in
+          discardWorthlessCriticalSquares initial `shouldBe` simplified
+
+      it "removes all succeeding cr squares after cr square for both players" $ do
+        let
+          initial = do
+              [   AI.CriticalP1
+                , AI.CriticalP2
+                , AI.CriticalBoth
+                , AI.CriticalP2
+                , AI.CriticalBoth
+                , AI.NotCritical ]
+
+          simplified = do
+              [   AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalBoth
+                , AI.NotCritical ]
+          in
+          discardWorthlessCriticalSquares initial `shouldBe` simplified
+
+      it "never removes occupied squares" $ do
+        let
+          initial = do
+              [   AI.CriticalP1
+                , AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.Occupied
+                , AI.Occupied ]
+
+          simplified = do
+              [   AI.NotCritical
+                , AI.NotCritical
+                , AI.CriticalP1
+                , AI.NotCritical
+                , AI.Occupied
+                , AI.Occupied ]
+          in
+          discardWorthlessCriticalSquares initial `shouldBe` simplified

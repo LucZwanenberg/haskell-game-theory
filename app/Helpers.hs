@@ -1,5 +1,7 @@
 module Helpers where
 
+import Data.List
+
 pairToList6 :: (a, a, a, a, a, a) -> [a]
 pairToList6 (a0, a1, a2, a3, a4, a5) = [a0, a1, a2, a3, a4, a5]
 
@@ -30,15 +32,6 @@ findLastIndex matcher items = do
     case index of
       Just i -> Just (((length items) - 1) - i)
       _ -> Nothing
-
-findIndex :: (a -> Bool) -> [a] -> Maybe Int
-findIndex matcher (x:xs) | matcher x = Just 0
-                         | otherwise = do
-                           let index = findIndex matcher xs in
-                             case index of
-                               Just i -> Just (i + 1)
-                               _ -> Nothing
-findIndex _ _ = Nothing
 
 mapMatrix :: (a -> b) -> [[a]] -> [[b]]
 mapMatrix transform matrix = map (map transform) matrix
@@ -71,3 +64,9 @@ matrixSetValue :: [[a]] -> Int -> Int -> a -> [[a]]
 matrixSetValue matrix x y val = do
   let newRow = replaceInList (matrix!!y) x val in
     replaceInList matrix y newRow
+
+rotateMatrixLeft :: [[x]] -> [[x]]
+rotateMatrixLeft = transpose . map reverse
+
+rotateMatrixRight :: [[a]] -> [[a]]
+rotateMatrixRight = transpose . reverse

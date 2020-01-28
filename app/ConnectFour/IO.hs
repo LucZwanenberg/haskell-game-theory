@@ -1,4 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
 module ConnectFour.IO where
+
+import qualified Data.Text.IO as T
+-- import System.Console.Pretty (Color (..), Style (..), bgColor, color,
+--                                         style, supportsPretty)
 
 import Lib
 import ConnectFour.Definitions

@@ -16,54 +16,54 @@ spec = do
     context "empty game" $ do
       it "returns empty board" $ do
         showBoard (gameToBoard []) `shouldBe`
-          " A   B   C   D   E   F   G\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]"
+          " A  B  C  D  E  F  G\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]"
 
     context "game with single move" $ do
       it "returns correct board" $ do
         showBoard (gameToBoard [D]) `shouldBe`
-          " A   B   C   D   E   F   G\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [X] [ ] [ ] [ ]"
+          " A  B  C  D  E  F  G\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][X][ ][ ][ ]"
 
     context "game with multiple moves" $ do
       it "returns correct board" $ do
         showBoard (gameToBoard [D, E, C, B, D, E]) `shouldBe`
-          " A   B   C   D   E   F   G\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [X] [O] [ ] [ ]\n\
-          \[ ] [O] [X] [X] [O] [ ] [ ]"
+          " A  B  C  D  E  F  G\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][X][O][ ][ ]\n\
+          \[ ][O][X][X][O][ ][ ]"
 
     context "game with multiple moves" $ do
       it "returns correct board" $ do
         showBoard (gameToBoard [D, D, D, D]) `shouldBe`
-          " A   B   C   D   E   F   G\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [O] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [X] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [O] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [X] [ ] [ ] [ ]"
+          " A  B  C  D  E  F  G\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][O][ ][ ][ ]\n\
+          \[ ][ ][ ][X][ ][ ][ ]\n\
+          \[ ][ ][ ][O][ ][ ][ ]\n\
+          \[ ][ ][ ][X][ ][ ][ ]"
 
     context "game with multiple moves" $ do
       it "returns correct board" $ do
         showBoard (gameToBoard [D, E, C, B, D, E, C, D, D]) `shouldBe`
-          " A   B   C   D   E   F   G\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [ ] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [X] [ ] [ ] [ ]\n\
-          \[ ] [ ] [ ] [O] [ ] [ ] [ ]\n\
-          \[ ] [ ] [X] [X] [O] [ ] [ ]\n\
-          \[ ] [O] [X] [X] [O] [ ] [ ]"
+          " A  B  C  D  E  F  G\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][ ][ ][ ][ ]\n\
+          \[ ][ ][ ][X][ ][ ][ ]\n\
+          \[ ][ ][ ][O][ ][ ][ ]\n\
+          \[ ][ ][X][X][O][ ][ ]\n\
+          \[ ][O][X][X][O][ ][ ]"

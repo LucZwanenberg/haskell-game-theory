@@ -166,12 +166,12 @@ analyzeSubarrays game = sum (map scoreSubarray (subarraysLength4 (analysisMatrix
 scoreSubarray :: [Int] -> Score
 scoreSubarray array = do
   case (analyzeSubarray array) of
-    (3, 0) -> 10
-    (0, 3) -> -10
-    (2, 0) -> 5
-    (0, 2) -> -5
-    (1, 0) -> 1
-    (0, 1) -> -1
+    (3, 0) -> 300
+    (0, 3) -> -300
+    (2, 0) -> 150
+    (0, 2) -> -150
+    (1, 0) -> 80
+    (0, 1) -> -80
     _ -> 0
 
 analyzeSubarray :: [Int] -> (Int, Int)
@@ -209,6 +209,11 @@ scoreCriticalSquareColumn column = do
       _ -> 0
 
 scoreSingleElement :: Int -> CriticalSquareMatrixValue -> Score
+-- Critical square that can immediately blocked by opponent on the next turn
+-- is less valuable
+scoreSingleElement 0 CriticalP1 = 700
+scoreSingleElement 0 CriticalP2 = -700
+
 scoreSingleElement distance CriticalP1 = 5000 - (distance * 800)
 scoreSingleElement distance CriticalP2 = - (5000 - (distance * 800))
 scoreSingleElement _ _ = 0

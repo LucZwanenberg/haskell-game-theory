@@ -59,7 +59,7 @@ processGame game = do
     Active -> do
       case (length game) `mod` 2 of
         0 -> makeAIMove game
-        _ -> requestHumanMove game
+        _ -> makeAIMove game
     a -> do
       putStrLn (show a)
       requestRematch ()

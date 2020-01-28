@@ -58,7 +58,7 @@ processGame game = do
   case gameState game of
     Active -> do
       case (length game) `mod` 2 of
-        0 -> makeAIMove game
+        0 -> requestHumanMove game
         _ -> makeAIMove game
     a -> do
       putStrLn (show a)

@@ -1,15 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module ConnectFour.IO where
 
-import qualified Data.Text.IO as T
--- import System.Console.Pretty (Color (..), Style (..), bgColor, color,
---                                         style, supportsPretty)
-
 import Lib
 import ConnectFour.Definitions
 import ConnectFour.Game
 import ConnectFour.Board
 import ConnectFour.AI as AI
+import ConnectFour.PrettyBoard
 
 inputToMove :: String -> Maybe Move
 inputToMove "A" = Just A
@@ -60,7 +57,7 @@ makeAIMove game = do
 
 processGame :: Game -> IO ()
 processGame game = do
-  putStrLn (showGame game)
+  prettyPrintGame game
   case gameState game of
     Active -> do
       case (length game) `mod` 2 of

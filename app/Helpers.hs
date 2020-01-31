@@ -60,8 +60,8 @@ combine4Matrices :: [[a]] -> [[b]] -> [[c]] -> [[d]] -> (a -> b -> c -> d -> e) 
 combine4Matrices (aRow:aRows) (bRow:bRows) (cRow:cRows) (dRow:dRows) combiner = [combine4Arrays aRow bRow cRow dRow combiner] ++ (combine4Matrices aRows bRows cRows dRows combiner)
 combine4Matrices _ _ _ _ _ = []
 
-matrixSetValue :: [[a]] -> Int -> Int -> a -> [[a]]
-matrixSetValue matrix x y val = do
+matrixSetValue :: [[a]] -> (Int, Int) -> a -> [[a]]
+matrixSetValue matrix (x, y) val = do
   let newRow = replaceInList (matrix!!y) x val in
     replaceInList matrix y newRow
 

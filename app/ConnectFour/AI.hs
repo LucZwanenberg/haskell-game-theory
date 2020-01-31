@@ -166,12 +166,12 @@ analyzeSubarrays game = sum (map scoreSubarray (subarraysLength4 (analysisMatrix
 scoreSubarray :: [Int] -> Score
 scoreSubarray array = do
   case (analyzeSubarray array) of
-    (3, 0) -> 300
-    (0, 3) -> -300
-    (2, 0) -> 150
-    (0, 2) -> -150
-    (1, 0) -> 80
-    (0, 1) -> -80
+    (3, 0) -> 20
+    (0, 3) -> -20
+    (2, 0) -> 5
+    (0, 2) -> -5
+    (1, 0) -> 1
+    (0, 1) -> -1
     _ -> 0
 
 analyzeSubarray :: [Int] -> (Int, Int)
@@ -322,8 +322,8 @@ initCriticalMatrix = [initCriticalMatrixRow, initCriticalMatrixRow, initCritical
 emptyCriticalMatrixRow :: [Maybe CriticalSquareMatrixValue]
 emptyCriticalMatrixRow = [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]
 
-emptyCritialSquareMatrix :: [[Maybe CriticalSquareMatrixValue]]
-emptyCritialSquareMatrix = [emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow]
+emptyCriticalSquareMatrix :: [[Maybe CriticalSquareMatrixValue]]
+emptyCriticalSquareMatrix = [emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow, emptyCriticalMatrixRow]
 
 setOccupiedSquares :: [[CriticalSquareMatrixValue]] -> Game -> [[CriticalSquareMatrixValue]]
 setOccupiedSquares matrix game = combineMatrices matrix (gameToMatrix game) (\a b -> do
@@ -344,23 +344,23 @@ p1CriticalMatrix :: Game -> [[(Maybe CriticalSquareMatrixValue)]]
 p1CriticalMatrix game = do
   foldl (\x y -> do
       case y of
-        [(_, _, 1), (_, _, 1), (_, _, 1), (c, r, 0)] -> matrixSetValue x c r (Just CriticalP1)
-        [(_, _, 1), (_, _, 1), (c, r, 0), (_, _, 1)] -> matrixSetValue x c r (Just CriticalP1)
-        [(_, _, 1), (c, r, 0), (_, _, 1), (_, _, 1)] -> matrixSetValue x c r (Just CriticalP1)
-        [(c, r, 0), (_, _, 1), (_, _, 1), (_, _, 1)] -> matrixSetValue x c r (Just CriticalP1)
+        [(_, _, 1), (_, _, 1), (_, _, 1), (c, r, 0)] -> matrixSetValue x (c, r) (Just CriticalP1)
+        [(_, _, 1), (_, _, 1), (c, r, 0), (_, _, 1)] -> matrixSetValue x (c, r) (Just CriticalP1)
+        [(_, _, 1), (c, r, 0), (_, _, 1), (_, _, 1)] -> matrixSetValue x (c, r) (Just CriticalP1)
+        [(c, r, 0), (_, _, 1), (_, _, 1), (_, _, 1)] -> matrixSetValue x (c, r) (Just CriticalP1)
         _ -> x
-    ) emptyCritialSquareMatrix (subarraysLength4 ( labeledAnalysisMatrix game ))
+    ) emptyCriticalSquareMatrix (subarraysLength4 ( labeledAnalysisMatrix game ))
 
 p2CriticalMatrix :: Game -> [[(Maybe CriticalSquareMatrixValue)]]
 p2CriticalMatrix game = do
   foldl (\x y -> do
       case y of
-        [(_, _, -1), (_, _, -1), (_, _, -1), (c, r, 0)] -> matrixSetValue x c r (Just CriticalP2)
-        [(_, _, -1), (_, _, -1), (c, r, 0), (_, _, -1)] -> matrixSetValue x c r (Just CriticalP2)
-        [(_, _, -1), (c, r, 0), (_, _, -1), (_, _, -1)] -> matrixSetValue x c r (Just CriticalP2)
-        [(c, r, 0), (_, _, -1), (_, _, -1), (_, _, -1)] -> matrixSetValue x c r (Just CriticalP2)
+        [(_, _, -1), (_, _, -1), (_, _, -1), (c, r, 0)] -> matrixSetValue x (c, r) (Just CriticalP2)
+        [(_, _, -1), (_, _, -1), (c, r, 0), (_, _, -1)] -> matrixSetValue x (c, r) (Just CriticalP2)
+        [(_, _, -1), (c, r, 0), (_, _, -1), (_, _, -1)] -> matrixSetValue x (c, r) (Just CriticalP2)
+        [(c, r, 0), (_, _, -1), (_, _, -1), (_, _, -1)] -> matrixSetValue x (c, r) (Just CriticalP2)
         _ -> x
-    ) emptyCritialSquareMatrix (subarraysLength4 ( labeledAnalysisMatrix game ))
+    ) emptyCriticalSquareMatrix (subarraysLength4 ( labeledAnalysisMatrix game ))
 
 criticalSquareMatrix :: Game -> [[CriticalSquareMatrixValue]]
 criticalSquareMatrix game = do

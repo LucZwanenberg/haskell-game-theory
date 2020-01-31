@@ -4,8 +4,8 @@ module Chess.Definitions where
 type File = Int
 type Rank = Int
 type Position = (File, Rank)
-type StartPosition = Square
-type EndPosition = Square
+type StartPosition = Position
+type EndPosition = Position
 type Promotion = PieceType
 type Move = (StartPosition, EndPosition, Maybe Promotion)
 type Moves = [Move]
@@ -24,3 +24,6 @@ type Board = [[Square]]
 
 -- Meta
 data MoveError = MoveErrorReason -- TODO
+type ValidMove = Move
+type ValidGame = Game
+type ValidBoard = Board

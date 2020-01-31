@@ -57,8 +57,8 @@ setSquares board positions = foldl (\board (position, square) -> do
 setSquare :: Board -> Position -> (Maybe Piece) -> Board
 setSquare board position = matrixSetValue board (positionToXY position)
 
+getSquare :: Board -> Position -> Square
+getSquare board position = matrixGetValue board (positionToXY position)
+
 positionToXY :: Position -> (Int, Int)
 positionToXY (file, rank) = (file - 1, rankCount - rank)
-
-gameToBoard :: Game -> Board
-gameToBoard game = initialBoard -- TODO

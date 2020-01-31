@@ -65,6 +65,9 @@ matrixSetValue matrix (x, y) val = do
   let newRow = replaceInList (matrix!!y) x val in
     replaceInList matrix y newRow
 
+matrixGetValue :: [[a]] -> (Int, Int) -> a
+matrixGetValue matrix (x, y) = (matrix!!y)!!x
+
 rotateMatrixLeft :: [[x]] -> [[x]]
 rotateMatrixLeft = transpose . map reverse
 
